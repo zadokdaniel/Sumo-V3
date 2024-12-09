@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Shift {
+  id            String    @id @default(uuid())
+  date          DateTime
+  timePeriod    String    // AM or PM
+  netTips       Float
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  staff         Staff[]
+  rules         Rules?
+}
+
+model Rules {
+  id                  String  @id @default(uuid())
+  shiftId            String  @unique
+  shift              Shift   @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  intervals          Int     @default(15)
+  multiplierValue    Float   @default(1.0)
+  multiplierEnabled  Boolean @default(false)
+  provisionValue     Float   @default(0.05)
+  provisionThreshold Float   @default(40)
+  provisionEnabled   Boolean @default(false)
+}
+
+model Staff {
+  id            String    @id @default(uuid())
+  shiftId       String
+  shift         Shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  name          String
+  type          String
+  startTime     DateTime?
+  endTime       DateTime?
+  breaks        Int?
+  expenses      Float     @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([shiftId])
+}
